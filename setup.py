@@ -11,7 +11,7 @@ setup(
     install_requires=[
         'Flask',
         'flask-restful',
-        'Flask-PyMongo'
+        'Flask-PyMongo',
         'python-dateutil'
     ]
 )
