@@ -68,9 +68,16 @@ class User(restful.Resource):
             # create a new user, uses a setuid on /opt/redbridge/bin/rbapps-user (that runs oo-admin-ctl-user -c -l $1)
             try:
                 subprocess.check_call(["/opt/redbridge/bin/rbapps-user", login])
+                if args['limit']:
+                    limit = args['limit']
+                else:
+                    limit = regular
+                user = mongo.db.cloud_users.find_one_or_404({"login": login})
+                mongo.db.cloud_users.update({'_id': user['_id']}, {'$set': {'capabilities': self.limit_template(limit)}})
                 return "created", 201
             except:
                 return "error creating user", 400
+        return "invalid username", 400
 
     def is_valid_limit(self, value, name):
         limits = ['limited', 'regular', 'premium']
