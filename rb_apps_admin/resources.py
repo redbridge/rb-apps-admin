@@ -13,6 +13,8 @@
 # License for the specific language governing permissions and limitations
 import json
 import pytz
+import subprocess
+import re
 from flask import request, abort
 from flask.ext import restful
 from flask.ext.restful import reqparse
@@ -55,9 +57,20 @@ class User(restful.Resource):
         args = self.parser.parse_args()
         user = mongo.db.cloud_users.find_one_or_404({"login": login})
         if args['limit']:
-            return mongo.db.cloud_users.update({'_id': user['_id']}, {'$set': {'capabilities': self.limit_template(args['limit'])}})
+            return mongo.db.cloud_users.update({'_id': user['_id']}, {'$set': {'capabilities': self.limit_template(args['limit'])}}), 201
         else:
             raise ValueError('This interface needs a limit parameter')
+
+    def post(self, login):
+        pattern = r"(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$)"
+
+        if re.match(pattern, login):
+            # create a new user, uses a setuid on /opt/redbridge/bin/rbapps-user (that runs oo-admin-ctl-user -c -l $1)
+            try:
+                subprocess.check_call(["/opt/redbridge/bin/rbapps-user", login])
+                return "created", 201
+            except:
+                return "error creating user", 400
 
     def is_valid_limit(self, value, name):
         limits = ['limited', 'regular', 'premium']
@@ -69,7 +82,7 @@ class User(restful.Resource):
         template = {
             'limited': {
                 'max_domains': 1,
-                'max_gears': 3,
+                'max_gears': 2,
                 'max_tracked_addtl_storage_per_gear': 0,
                 'max_teams': 0,
                 'private_ssl_certificates': False,
@@ -77,7 +90,7 @@ class User(restful.Resource):
                 'subaccounts': False,
                 'max_untracked_addtl_storage_per_gear': 0,
                 'view_global_teams': False,
-                'gear_sizes': ['small', 'medium', 'large']
+                'gear_sizes': ['small']
             },
             'regular': {
                 'max_domains': 5,
