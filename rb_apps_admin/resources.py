@@ -99,7 +99,7 @@ class User(Resource):
                 if args['limit']:
                     limit = args['limit']
                 else:
-                    limit = regular
+                    limit = "regular"
                 user = mongo.db.cloud_users.find_one_or_404({"login": login})
                 mongo.db.cloud_users.update({'_id': user['_id']}, {'$set': {'capabilities': self.limit_template(limit)}})
                 return "created", 201
