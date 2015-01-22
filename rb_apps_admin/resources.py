@@ -90,8 +90,8 @@ class User(Resource):
             raise ValueError('This interface needs a limit parameter')
 
     def post(self, login):
+        args = self.parser.parse_args()
         pattern = r"(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$)"
-
         if re.match(pattern, login):
             # create a new user, uses a setuid on /opt/redbridge/bin/rbapps-user (that runs oo-admin-ctl-user -c -l $1)
             try:
