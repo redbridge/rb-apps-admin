@@ -103,8 +103,8 @@ class User(Resource):
                 user = mongo.db.cloud_users.find_one_or_404({"login": login})
                 mongo.db.cloud_users.update({'_id': user['_id']}, {'$set': {'capabilities': self.limit_template(limit)}})
                 return "created", 201
-            except:
-                return "error creating user", 400
+            except Exception as e:
+                return "error creating user, %s" % e, 400
         return "invalid username", 400
 
     def is_valid_limit(self, value, name):
