@@ -15,7 +15,8 @@ import json
 import pytz
 import subprocess
 import re
-from flask import request, abort
+from functools import wraps
+from flask import request, abort, Response
 from flask.ext import restful
 from flask.ext.restful import reqparse
 from rb_apps_admin import app, api, mongo
@@ -24,7 +25,34 @@ from datetime import *
 from dateutil.relativedelta import *
 
 
-class ApplicationList(restful.Resource):
+
+def check_auth(username, password):
+    """This function is called to check if a username /
+    password combination is valid.
+    """
+    return username == app.config['AUTH_USER'] and password == app.config['AUTH_PASSWORD']
+
+def authenticate():
+    """Sends a 401 response that enables basic auth"""
+    return Response(
+    'Could not verify your access level for that URL.\n'
+    'You have to login with proper credentials', 401,
+    {'WWW-Authenticate': 'Basic realm="Login Required"'})
+
+def requires_auth(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        auth = request.authorization
+        if not auth or not check_auth(auth.username, auth.password):
+            return authenticate()
+        return f(*args, **kwargs)
+    return decorated
+
+class Resource(restful.Resource):
+    method_decorators = [requires_auth]   # applies to all inherited resources
+
+
+class ApplicationList(Resource):
     def __init__(self, *args, **kwargs):
         self.parser = reqparse.RequestParser()
         self.parser.add_argument('user', type=str)
@@ -39,12 +67,12 @@ class ApplicationList(restful.Resource):
         return [x for x in mongo.db.applications.find()]
 
 
-class Application(restful.Resource):
+class Application(Resource):
     def get(self, application_id):
         return mongo.db.applications.find_one_or_404({"_id": application_id})
 
 
-class User(restful.Resource):
+class User(Resource):
     def __init__(self, *args, **kwargs):
         self.parser = reqparse.RequestParser()
         self.parser.add_argument('limit', type=self.is_valid_limit)
@@ -128,12 +156,12 @@ class User(restful.Resource):
         return template[limit]
 
 
-class UsersList(restful.Resource):
+class UsersList(Resource):
     def get(self):
         return [{'login': x['login']} for x in mongo.db.cloud_users.find()]
 
 
-class Usage(restful.Resource):
+class Usage(Resource):
     def __init__(self, *args, **kwargs):
         self.parser = reqparse.RequestParser()
         self.parser.add_argument('start_date', type=str)
@@ -187,7 +215,7 @@ class Usage(restful.Resource):
     def total_seconds(self, td):
         return (td.microseconds + (td.seconds + td.days * 24 * 3600) * 10**6) / 10**6
 
-class Root(restful.Resource):
+class Root(Resource):
     def get(self):
         return {
             'status': 'OK',

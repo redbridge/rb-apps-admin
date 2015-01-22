@@ -12,6 +12,8 @@ setup(
         'Flask',
         'flask-restful',
         'Flask-PyMongo',
-        'python-dateutil'
+        'python-dateutil',
+        'gunicorn',
+        'eventlet'
     ]
 )
