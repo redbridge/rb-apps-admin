@@ -81,7 +81,7 @@ class Application(Resource):
         args = self.parser.parse_args()
         if args['user']:
             try:
-                subprocess.check_call(["/opt/redbridge/bin/rbapps-force-destroy-app", application_id, args['user'])
+                subprocess.check_call(["/opt/redbridge/bin/rbapps-force-destroy-app", application_id, args['user']])
                 return "deleted", 204
             except Exception as e:
                 return "error deleting application, %s" % e, 400
