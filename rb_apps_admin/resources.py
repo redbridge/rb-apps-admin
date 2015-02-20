@@ -70,17 +70,18 @@ class ApplicationList(Resource):
 class Application(Resource):
     def __init__(self, *args, **kwargs):
         self.parser = reqparse.RequestParser()
-        self.parser.add_argument('login')
+        self.parser.add_argument('user')
         super(Application, self).__init__()
 
     def get(self, application_id):
         return mongo.db.applications.find_one_or_404({"_id": application_id})
 
     def delete(self, application_id):
+        mongo.db.applications.find_one_or_404({"_id": application_id})
         args = self.parser.parse_args()
-        if args['login']:
+        if args['user']:
             try:
-                subprocess.check_call(["/opt/redbridge/bin/rbapps-force-destroy-app", application_id, login])
+                subprocess.check_call(["/opt/redbridge/bin/rbapps-force-destroy-app", application_id, args['user'])
                 return "deleted", 204
             except Exception as e:
                 return "error deleting application, %s" % e, 400
