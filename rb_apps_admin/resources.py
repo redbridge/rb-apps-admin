@@ -70,11 +70,36 @@ class ApplicationList(Resource):
 class Application(Resource):
     def __init__(self, *args, **kwargs):
         self.parser = reqparse.RequestParser()
-        self.parser.add_argument('user')
+        self.parser.add_argument('user', type=str)
+        self.parser.add_argument('action', type=str, type=self.is_valid_action)
         super(Application, self).__init__()
+
+    def is_valid_action(self, value, name):
+        actions = ['stop', 'start']
+        if value not in actions:
+            raise ValueError("The action '{}' is not valid. valid actions are {}".format(value, actions))
+        return value
 
     def get(self, application_id):
         return mongo.db.applications.find_one_or_404({"_id": application_id})
+
+    def put(self, application_id):
+        args = self.parser.parse_args()
+        app = mongo.db.applications.find_one_or_404({"_id": application_id})
+        user = mongo.db.cloud_users.find_one_or_404({"login": args['user']})
+        if args['action']
+            if args['action'] == 'stop':
+                action = "force-stop"
+            else:
+                action = args['action']
+            try:
+                subprocess.check_call(["/opt/redbridge/bin/rbapps-ctl-app", action, str(app['name']), str(user['login'])])
+                return args['action'], 200
+            except Exception as e:
+                return "error running action on application, %s" % e, 400
+        else:
+            return "action must be supplied", 400
+
 
     def delete(self, application_id):
         args = self.parser.parse_args()
