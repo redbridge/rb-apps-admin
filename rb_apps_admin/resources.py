@@ -71,7 +71,7 @@ class Application(Resource):
     def __init__(self, *args, **kwargs):
         self.parser = reqparse.RequestParser()
         self.parser.add_argument('user', type=str)
-        self.parser.add_argument('action', type=str, type=self.is_valid_action)
+        self.parser.add_argument('action', type=self.is_valid_action)
         super(Application, self).__init__()
 
     def is_valid_action(self, value, name):
@@ -87,7 +87,7 @@ class Application(Resource):
         args = self.parser.parse_args()
         app = mongo.db.applications.find_one_or_404({"_id": application_id})
         user = mongo.db.cloud_users.find_one_or_404({"login": args['user']})
-        if args['action']
+        if args['action']:
             if args['action'] == 'stop':
                 action = "force-stop"
             else:
