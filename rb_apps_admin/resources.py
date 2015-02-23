@@ -77,11 +77,12 @@ class Application(Resource):
         return mongo.db.applications.find_one_or_404({"_id": application_id})
 
     def delete(self, application_id):
-        mongo.db.applications.find_one_or_404({"_id": application_id})
+        args = self.parser.parse_args()
+        app = mongo.db.applications.find_one_or_404({"_id": application_id})
         user = mongo.db.cloud_users.find_one_or_404({"login": args['user']})
         if user:
             try:
-                subprocess.check_call(["/opt/redbridge/bin/rbapps-force-destroy-app", application_id, user['login']])
+                subprocess.check_call(["/opt/redbridge/bin/rbapps-force-destroy-app", str(app['name']), str(user['login'])])
                 return "deleted", 204
             except Exception as e:
                 return "error deleting application, %s" % e, 400

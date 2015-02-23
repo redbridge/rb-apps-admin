@@ -3,7 +3,7 @@ from setuptools import setup
 
 setup(
     name='RedBridge Apps Admin',
-    version='1.2.3',
+    version='1.2.4',
     long_description=__doc__,
     packages=['rb_apps_admin'],
     include_package_data=True,
