@@ -223,11 +223,11 @@ class Usage(Resource):
             try:
                 end_date = datetime.strptime(args['end_date'], '%Y-%m-%d')
                 if not end_date > start_date:
-                    end_date = now - relativedelta(day=31, hour=0, minute=0, second=0)
+                    end_date = now - relativedelta(day=31, hour=23, minute=59, second=59)
             except:
-                end_date = now - relativedelta(day=31, hour=0, minute=0, second=0)
+                end_date = now - relativedelta(day=31, hour=23, minute=59, second=59)
         else:
-            end_date = now - relativedelta(day=31, hour=0, minute=0, second=0)
+            end_date = now - relativedelta(day=31, hour=23, minute=59, second=59)
         # localize dates
         start_date = pytz.utc.localize(start_date)
         end_date = pytz.utc.localize(end_date)
